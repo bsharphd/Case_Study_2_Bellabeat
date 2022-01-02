@@ -35,3 +35,4 @@ You will produce a report with the following deliverables:
      1. [Part 1: Supporting visualizations and key findings](https://github.com/bsharphd/Case_Study_2_Bellabeat/wiki/4.1-Deliverable)
      2. [Part 2: Supporting visualizations and key findings](https://github.com/bsharphd/Case_Study_2_Bellabeat/wiki/4.2-Deliverable)
 5. [Your top high-level insights based on your analysis](https://github.com/bsharphd/Case_Study_2_Bellabeat/wiki/5.1-Deliverable)
+6. [Act](https://github.com/bsharphd/Case_Study_2_Bellabeat/wiki/6.1-Deliverable)
