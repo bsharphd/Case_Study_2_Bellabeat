@@ -1,0 +1,244 @@
+---
+title: "Case_Study_2_Bellabeat"
+author: "Brandi Sharp"
+date: "12/31/2021"
+output: html_document
+---
+## Introduction and background
+Sršen asks you to analyze smart device usage data in order to gain insight into how consumers use non-Bellabeat smart devices. She then wants you to select one Bellabeat product to apply these insights to in your presentation. These questions will guide your analysis:
+
+What are some trends in smart device usage?
+How could these trends apply to Bellabeat customers?
+How could these trends help influence Bellabeat marketing strategy?
+
+## Upload your CSV files to R
+Remember to upload your CSV files to your project from the relevant data source:
+https://www.kaggle.com/arashnic/fitbit
+
+## Installing and loading common packages and libraries
+You can always install and load packages along the way as you may discover you need different packages after you start your analysis. If you already have some of these packages installed and loaded, you can skip those ones - or you can choose to run those specific lines of code anyway. It may take a few moments to run.
+
+```{r}
+install.packages('tidyverse')
+library(tidyverse)
+```
+
+## Loading your CSV files
+Here we'll create a dataframe named 'daily_activity' and read in one of the CSV files from the dataset. Remember, you can name your dataframe something different, and you can also save your CSV file under a different name as well.
+
+```{r}
+daily_activity_df <- read.csv("dailyActivity_merged.csv")
+dailyCalories_df <- read.csv("dailyCalories_merged.csv")
+dailyIntensities_df <- read_csv("dailyIntensities_merged.csv")
+dailySteps_df <- read_csv("dailySteps_merged.csv")
+heartrate_seconds_df <- read_csv("heartrate_seconds_merged.csv")
+hourlyCalories_df <- read_csv("hourlyCalories_merged.csv")
+hourlyIntensities_df <- read_csv("hourlyIntensities_merged.csv")
+hourlySteps_df <- read_csv("hourlySteps_merged.csv")
+minuteCaloriesNarrow_df <- read_csv("minuteCaloriesNarrow_merged.csv")
+minuteCaloriesWide_df <- read_csv("minuteCaloriesWide_merged.csv")
+minuteIntensitiesNarrow_df <- read_csv("minuteIntensitiesNarrow_merged.csv")
+minuteIntensitiesWide_merged_df <- read_csv("minuteIntensitiesWide_merged.csv")
+minuteMETsNarrow_df <- read_csv("minuteMETsNarrow_merged.csv")
+minuteSleep_df <- read_csv("minuteSleep_merged.csv")
+minuteStepsNarrow_df <- read_csv("minuteStepsNarrow_merged.csv")
+minuteStepsWide_df <- read_csv("minuteStepsWide_merged.csv")
+sleepDay_df <- read_csv("sleepDay_merged.csv")
+weightLogInfo_df <- read_csv("weightLogInfo_merged.csv")
+```
+
+## Exploring a few key tables
+
+Take a look at the columns in each imported csv.
+
+```{r}
+colnames(daily_activity_df)
+colnames(dailyCalories_df)
+colnames(dailyCalories_df)
+colnames(dailyIntensities_df)
+colnames(dailySteps_df)
+colnames(heartrate_seconds_df)
+colnames(hourlyCalories_df)
+colnames(hourlyIntensities_df)
+colnames(hourlySteps_df)
+colnames(minuteCaloriesNarrow_df)
+colnames(minuteCaloriesWide_df)
+colnames(minuteIntensitiesNarrow_df)
+colnames(minuteCaloriesWide_df)
+colnames(minuteMETsNarrow_df)
+colnames(minuteSleep_df)
+colnames(minuteStepsNarrow_df)
+colnames(minuteStepsWide_df)
+colnames(sleepDay_df)
+colnames(weightLogInfo_df)
+```
+Note that many datasets have the 'Id' field - this can be used to merge the datasets.
+
+## Understanding some summary statistics
+How many unique participants are there in each dataframe? More participants are in the daily activity dataset (n=33) than the sleep dataset (n=24).
+
+```{r distinct users}
+n_distinct(daily_activity_df$Id)
+n_distinct(sleepDay_df$Id)
+```
+
+How many observations are there in each dataframe? dailyActivity(n=940); sleepDay_df(n=413)
+
+```{r observations}
+nrow(daily_activity_df)
+nrow(sleepDay_df)
+```
+
+What are some quick summary statistics we'd want to know about each data frame?
+
+For the daily activity dataframe:
+
+```{r}
+daily_activity_df %>%  
+  select(TotalSteps,
+         TotalDistance,
+         SedentaryMinutes) %>%
+  summary()
+```
+
+For the sleep dataframe:
+```{r}
+sleepDay_df %>%  
+  select(TotalSleepRecords,
+  TotalMinutesAsleep,
+  TotalTimeInBed) %>%
+  summary()
+```
+
+What does this tell us about how this sample of people's activities?
+1. Average about 7,000 steps or a bit less than 5.5 miles of activity per day. However, 16.5hrs of their time seems to be spent sedentary. Possibly due to work and sleep?
+2. On average, they sleep nearly 7 hours per day and spent about 30 mins in bed prior to or after falling asleep.
+
+## Plotting a few explorations
+
+What's the relationship between steps taken in a day and sedentary minutes? How could this help inform the customer segments that we can market to? E.g. position this more as a way to get started in walking more? Or to measure steps that you're already taking?
+
+```{r}
+ggplot(data=daily_activity_df, aes(x=TotalSteps, y=SedentaryMinutes)) + geom_point(position=position_jitter()) + stat_smooth(method="lm") + labs(title="Total Steps vs Sedentary Minutes", subtitle = paste0("n=33 FitBit users"), x = "Total Steps", y = "Sedentary Minutes")
+```
+
+What's the relationship between minutes asleep and time in bed? You might expect it to be almost completely linear - are there any unexpected trends?
+
+```{r}
+ggplot(data=sleepDay_df, aes(x=TotalMinutesAsleep, y=TotalTimeInBed)) + geom_point(position=position_jitter()) + stat_smooth(method="lm") + labs(title="Total Minutes Asleep vs Total Time In Bed", subtitle = paste0("n=24 FitBit users"), x = "Total Minutes Asleep", y = "Total Time In Bed")
+```
+
+What could these trends tell you about how to help market this product? Or areas where you might want to explore further?
+
+## Merging these two datasets together
+
+```{r}
+combined_data <- merge(sleepDay_df, daily_activity_df, by="Id")
+```
+
+Take a look at how many participants are in this data set.
+
+```{r}
+n_distinct(combined_data$Id)
+```
+
+Note that there were more participant Ids in the daily activity dataset that have been filtered out using merge. Consider using 'outer_join' to keep those in the dataset. 
+
+Now you can explore some different relationships between activity and sleep as well. For example, do you think participants who sleep more also take more steps or fewer steps per day? Is there a relationship at all? How could these answers help inform the marketing strategy of how you position this new product?
+
+This is just one example of how to get started with this data - there are many other files and questions to explore as well!
+
+Fixing date in R because it didn't work in Excel
+
+```{r}
+install.packages("lubridate") 
+library(lubridate)
+combined_data$New_SleepDay <- mdy_hms(combined_data$SleepDay)
+combined_data$New_ActivityDate <- mdy(combined_data$ActivityDate)
+```
+
+Data points were too dense to make a useful conclusion. Exported the data to .csv file so that I could easily match ActivityDate and SleepDay dates in the dataset and delete all the other duplicate data (). Excel formula used was IF(T2=U2, "Match", "No Match"). Saved the .csv to project folder as "Combined_data_Sleep_Activity.csv". Observations went from 12441 to 413.
+
+```{r}
+write.csv(combined_data,"C:\\Users\\BSharp\\Documents\\Case_Study_2_Data\\combined_data.csv", row.names = FALSE)
+```
+
+Import filtered dataset back into R.
+
+```{r}
+combined_data_sleep_activity_df <- read_csv("Combined_data_Sleep_Activity.csv")
+```
+
+Review how many participants are in this dataset.
+
+```{r}
+n_distinct(combined_data_sleep_activity_df$Id)
+```
+
+Plot to explore whether participants who sleep more also take more steps or fewer steps per day? Is there a relationship at all? How could these answers help inform the marketing strategy of how you position this new product?
+
+```{r}
+ggplot(data=combined_data_sleep_activity_df, aes(x=TotalSteps, y=TotalMinutesAsleep)) + geom_point(position=position_jitter()) + stat_smooth(method="lm") + labs(title="Total Steps vs Total Minutes Asleep", subtitle = paste0("n=24 FitBit users"), x = "Total Steps", y = "Total Minutes Asleep")
+```
+
+Create a new dataset from only the Activity minutes.
+
+```{r}
+Activity_Quality <- select(combined_data_sleep_activity_df, Id, VeryActiveMinutes, FairlyActiveMinutes, LightlyActiveMinutes, SedentaryMinutes)
+```
+
+Rename the headers.
+
+```{r}
+names(Activity_Quality)[2:5] <- c("Very_Active", "Fairly_Active", "Lightly_Active", "Sedentary")
+```
+
+Pivot the data so that you can plot by the activity type.
+
+```{r}
+Activity_Quality_Long <- Activity_Quality %>%
+  pivot_longer(!Id, names_to = "Activity_Type")
+```
+
+Disable Scientific Notation and then plot.
+```{r}
+options(scipen = 100000)
+ggplot(Activity_Quality_Long, aes(x=Activity_Type, y=value, fill=Activity_Type)) + geom_bar(stat="identity") + labs(title="Overall Activity Minutes", subtitle = paste0("n=24 FitBit users"), x = "Activity Type", y = "Total Minutes")
+```
+Summary stats to help understand the data.
+
+```{r}
+Activity_Quality %>%  
+  select(Fairly_Active,
+  Lightly_Active,
+  Sedentary,
+  Very_Active) %>%
+  summary()
+```
+
+Check out the health details of these individuals. BMI and weight.
+
+```{r}
+weightLogInfo_df %>%  
+  select(BMI,
+  WeightPounds) %>%
+  summary()
+```
+
+Graph the data to check out the percentage of the whole that reported their BMI.
+
+```{r}
+# Create a group-means data set
+gd_weightLogInfo_df <- weightLogInfo_df %>%
+  group_by(Id) %>%
+  summarise(
+    BMI = mean(BMI),
+    WeightPounds = mean(WeightPounds))
+
+gd_weightLogInfo_df %>%
+  mutate(BMI_Category=ifelse(BMI<=18.5, "Underweight",
+                       ifelse(BMI>18.5 & BMI<=24.9, "Healthy", ifelse(BMI>24.9 & BMI<=29.9, "Overweight", ifelse(BMI>29.9, "Obese", "N/A"))))) %>%
+  count(BMI_Category) %>%
+  mutate(percent=n/nrow(gd_weightLogInfo_df)*100) %>%
+  ggplot(aes(x="", y=percent, fill=BMI_Category)) + geom_bar(stat="identity", width=1) + coord_polar("y", start = 0) + labs(title="BMI Score ", subtitle="n=8 FitBit Users", x="", y="") + geom_label(aes(label = paste0(scales::percent(n / nrow(gd_weightLogInfo_df)))), position= position_stack(vjust = 0.5), show.legend = FALSE)
+  ```
